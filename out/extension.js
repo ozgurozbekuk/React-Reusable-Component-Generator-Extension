@@ -23,7 +23,6 @@ async function ensureCNUtilExists(rootPath) {
 function activate(context) {
     console.log('Extension "react-component-creator" is now active!');
     let disposable = vscode.commands.registerCommand('extension.createComponentFile', async () => {
-        // Ask for component name
         const fileName = await vscode.window.showInputBox({
             prompt: 'Enter component name (e.g. MyButton)',
             value: 'MyComponent'
@@ -39,35 +38,57 @@ function activate(context) {
         }
         const rootPath = workspaceFolders[0].uri.fsPath;
         const componentFolderPath = path.join(rootPath, 'src', 'reuseComponents');
-        // Create folder if not exists
         if (!fs.existsSync(componentFolderPath)) {
             fs.mkdirSync(componentFolderPath, { recursive: true });
         }
-        // Ensure cn util exists
         await ensureCNUtilExists(rootPath);
-        // Prepare component file path
         const componentFilePath = path.join(componentFolderPath, `${fileName}.jsx`);
-        // Get active text editor and selection
         const editor = vscode.window.activeTextEditor;
         if (!editor) {
             vscode.window.showErrorMessage('No active editor.');
             return;
         }
         const selection = editor.selection;
-        const selectedText = editor.document.getText(selection);
+        let selectedText = editor.document.getText(selection);
         if (!selectedText) {
             vscode.window.showErrorMessage('No code selected.');
             return;
         }
-        // Prepare React component code with forwardRef and cn usage
+        // Replace class or className attributes to merge with incoming className prop
+        selectedText = selectedText.replace(/<(\w+)([^>]*)>/g, (fullMatch, tagName, attrs) => {
+            // Check if className attribute exists
+            const classNameMatch = attrs.match(/className=(["'{])([^"'}]+)\1/);
+            if (classNameMatch) {
+                const existingClasses = classNameMatch[2];
+                // Replace existing className with cn(...) including passed className prop
+                const newAttrs = attrs.replace(classNameMatch[0], `className={cn("${existingClasses}", className)}`);
+                return `<${tagName}${newAttrs}>`;
+            }
+            // Check if class attribute exists
+            const classMatch = attrs.match(/class=(["'])([^"']+)\1/);
+            if (classMatch) {
+                const existingClasses = classMatch[2];
+                // Remove class attribute and add className with cn(...)
+                const newAttrs = attrs.replace(classMatch[0], '') + ` className={cn("${existingClasses}", className)}`;
+                return `<${tagName}${newAttrs}>`;
+            }
+            // If no class or className attribute, add className={className}
+            return `<${tagName}${attrs} className={className}>`;
+        });
+        // Replace static inner text with {children} for all first-level elements
+        selectedText = selectedText.replace(/<(\w+)([^>]*)>([^<]+)<\/\1>/g, (match, tagName, attrs, innerText) => {
+            // If innerText is not empty and does not contain JSX tags, replace with {children}
+            if (innerText.trim() && !innerText.includes('<')) {
+                return `<${tagName}${attrs}>{children}</${tagName}>`;
+            }
+            return match;
+        });
         const componentCode = `import React from 'react';
 import { cn } from '../lib/utils';
 
-const ${fileName} = React.forwardRef(({ className, ...props }, ref) => {
+const ${fileName} = React.forwardRef(({ className, children, ...props }, ref) => {
   return (
-    <>
-${selectedText.split('\n').map(line => '      ' + line).join('\n')}
-    </>
+    ${selectedText}
   );
 });
 
@@ -75,12 +96,10 @@ ${fileName}.displayName = '${fileName}';
 
 export default ${fileName};
 `;
-        // Check if file exists
         if (fs.existsSync(componentFilePath)) {
             vscode.window.showWarningMessage('Component file already exists: ' + componentFilePath);
             return;
         }
-        // Write the component file
         try {
             fs.writeFileSync(componentFilePath, componentCode);
             vscode.window.showInformationMessage(`Component created at ${componentFilePath}`);
