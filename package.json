@@ -1,10 +1,11 @@
 {
-	"name": "helloworld-sample",
-	"displayName": "helloworld-sample",
-	"description": "HelloWorld example for VS Code",
+	"name": "react-reuse-component-generator",
+	"displayName": "react-reuse-component-generator",
+	"description": "React,Tailwind auto custom component generator.",
 	"version": "0.0.1",
-	"publisher": "vscode-samples",
-	"repository": "https://github.com/Microsoft/vscode-extension-samples/helloworld-sample",
+	"publisher": "ozgurozbek",
+	"license": "MIT",
+	"repository": "https://github.com/ozgurozbekuk/react-reuse-extension",
 	"engines": {
 		"vscode": "^1.74.0"
 	},
@@ -15,10 +16,7 @@
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
-			{
-				"command": "extension.helloWorld",
-				"title": "Hayin dunya"
-			},
+
 			{
   				"command": "extension.createComponentFile",
   				"title": "Create React Component File"
