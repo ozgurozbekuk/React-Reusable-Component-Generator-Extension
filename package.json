@@ -1,8 +1,8 @@
 {
 	"name": "react-select-reuse-component",
-	"displayName": "react-select-reuse-component",
-	"description": "React,Tailwind auto custom component generator.",
-	"version": "0.0.3",
+	"displayName": "React Reusable Component Generator",
+	"description": "Convert selected JSX code into a reusable React component with class merging and children support.",
+	"version": "0.0.4",
 	"publisher": "ozgurozbek",
 	"license": "MIT",
 	"repository": {

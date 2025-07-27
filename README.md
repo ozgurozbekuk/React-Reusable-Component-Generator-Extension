@@ -1,6 +1,11 @@
-# React Select & Reuse Component
+# React Reusable Component Generator
 
 A simple yet powerful VSCode extension that helps you extract selected JSX code into a reusable component with just one keyboard shortcut.
+
+### 📥 Installation
+
+Search for **React Reusable Component Generator** on the VSCode Marketplace  
+or You can install this extension from the [Visual Studio Code Marketplace](https://marketplace.visualstudio.com/items?itemName=ozgurozbek.react-select-reuse-component).
 
 ## ✨ Features
 
@@ -84,11 +89,6 @@ export default PrimaryButton;
 
 - Windows/Linux: `Ctrl + Alt + C`  
 - macOS: `⌃ + ⌥ + C`  
-
-### 📥 Installation
-
-Search for **React-select-reuse-component** on the VSCode Marketplace  
-or install it directly from the Extensions panel in VSCode.
 
 ### 📄 License
 
