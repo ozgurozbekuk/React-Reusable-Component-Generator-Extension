@@ -25,7 +25,7 @@ A simple yet powerful VSCode extension that helps you extract selected JSX code 
 
 ## 📸 Demo
 
-![React Component Creator Demo](./assets/reactextention(1).gif)  
+![React Component Creator Demo](./assets/readmegif.gif)  
 *A quick demo of selecting JSX and creating a component instantly.*
 
 ---
