@@ -31,7 +31,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 
   let disposable = vscode.commands.registerCommand('extension.createComponentFile', async () => {
-    
+
     let fileName = await vscode.window.showInputBox({
       prompt: 'Enter component name (e.g. MyButton)',
       value: 'MyComponent'
@@ -74,6 +74,14 @@ export function activate(context: vscode.ExtensionContext) {
       vscode.window.showErrorMessage('No code selected.');
       return;
     }
+
+    const rootTagMatches = selectedText.match(/<[^/][^>]*>/g); // sadece açılış tag'lerini bulur
+if (!rootTagMatches || rootTagMatches.length !== 1) {
+  vscode.window.showErrorMessage('Please select only one root element (e.g. <button>...</button>)');
+  return;
+}
+
+
 
     const unwantedAttributes = ['onClick', 'onChange', 'onSubmit', 'onMouseEnter', 'onMouseLeave', 'onFocus', 'onBlur', 'style', 'id'];
 
@@ -119,9 +127,12 @@ export function activate(context: vscode.ExtensionContext) {
     const componentCode = `import React from 'react';
 import { cn } from '../lib/utils';
 
-const ${fileName} = React.forwardRef(({ className, children }, ref) => {
+const ${fileName} = React.forwardRef(({ className, children, ...props }, ref) => {
   return (
-    ${selectedText}
+    React.cloneElement(
+      ${selectedText.trim()},
+      { ref, ...props }
+    )
   );
 });
 
@@ -150,4 +161,4 @@ export default ${fileName};
   context.subscriptions.push(disposable);
 }
 
-export function deactivate() {}
+export function deactivate() { }

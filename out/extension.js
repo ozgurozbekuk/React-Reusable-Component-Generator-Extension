@@ -60,6 +60,11 @@ function activate(context) {
             vscode.window.showErrorMessage('No code selected.');
             return;
         }
+        const rootTagMatches = selectedText.match(/<[^/][^>]*>/g); // sadece açılış tag'lerini bulur
+        if (!rootTagMatches || rootTagMatches.length !== 1) {
+            vscode.window.showErrorMessage('Please select only one root element (e.g. <button>...</button>)');
+            return;
+        }
         const unwantedAttributes = ['onClick', 'onChange', 'onSubmit', 'onMouseEnter', 'onMouseLeave', 'onFocus', 'onBlur', 'style', 'id'];
         // Remove unwanted attributes including data-* attributes
         selectedText = selectedText.replace(/<(\w+)([^>]*)>/g, (match, tagName, attrs) => {
@@ -97,9 +102,12 @@ function activate(context) {
         const componentCode = `import React from 'react';
 import { cn } from '../lib/utils';
 
-const ${fileName} = React.forwardRef(({ className, children }, ref) => {
+const ${fileName} = React.forwardRef(({ className, children, ...props }, ref) => {
   return (
-    ${selectedText}
+    React.cloneElement(
+      ${selectedText.trim()},
+      { ref, ...props }
+    )
   );
 });
 
