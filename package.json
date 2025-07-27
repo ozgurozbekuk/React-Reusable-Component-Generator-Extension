@@ -2,7 +2,7 @@
 	"name": "react-select-reuse-component",
 	"displayName": "react-select-reuse-component",
 	"description": "React,Tailwind auto custom component generator.",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"publisher": "ozgurozbek",
 	"license": "MIT",
 	"repository": "https://github.com/ozgurozbekuk/react-reuse-extension",

@@ -19,11 +19,20 @@ export async function ensureCNUtilExists(rootPath: string) {
   }
 }
 
+
+function toPascalCase(input: string): string {
+  return input
+    .replace(/[-_ ]+(\w)/g, (_, c) => c.toUpperCase())
+    .replace(/^\w/, c => c.toUpperCase());
+}
+
 export function activate(context: vscode.ExtensionContext) {
   console.log('Extension "react-component-creator" is now active!');
 
+
   let disposable = vscode.commands.registerCommand('extension.createComponentFile', async () => {
-    const fileName = await vscode.window.showInputBox({
+    
+    let fileName = await vscode.window.showInputBox({
       prompt: 'Enter component name (e.g. MyButton)',
       value: 'MyComponent'
     });
@@ -32,6 +41,8 @@ export function activate(context: vscode.ExtensionContext) {
       vscode.window.showErrorMessage('Component name not provided.');
       return;
     }
+
+    fileName = toPascalCase(fileName);
 
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders) {
@@ -64,33 +75,41 @@ export function activate(context: vscode.ExtensionContext) {
       return;
     }
 
-    // Replace class or className attributes to merge with incoming className prop
+    const unwantedAttributes = ['onClick', 'onChange', 'onSubmit', 'onMouseEnter', 'onMouseLeave', 'onFocus', 'onBlur', 'style', 'id'];
+
+    // Remove unwanted attributes including data-* attributes
+    selectedText = selectedText.replace(/<(\w+)([^>]*)>/g, (match, tagName, attrs) => {
+      const cleanedAttrs = attrs.replace(/\s+([:@]?[\w-]+)=({[^}]*}|"[^"]*"|'[^']*')/g, (attrMatch: string, attrName: string) => {
+        if (unwantedAttributes.includes(attrName) || attrName.startsWith('data-')) {
+          return '';
+        }
+        return attrMatch;
+      });
+
+      return `<${tagName}${cleanedAttrs}>`;
+    });
+
+    // Convert class / className to merge with className prop
     selectedText = selectedText.replace(/<(\w+)([^>]*)>/g, (fullMatch, tagName, attrs) => {
-      // Check if className attribute exists
       const classNameMatch = attrs.match(/className=(["'{])([^"'}]+)\1/);
       if (classNameMatch) {
         const existingClasses = classNameMatch[2];
-        // Replace existing className with cn(...) including passed className prop
         const newAttrs = attrs.replace(classNameMatch[0], `className={cn("${existingClasses}", className)}`);
         return `<${tagName}${newAttrs}>`;
       }
 
-      // Check if class attribute exists
       const classMatch = attrs.match(/class=(["'])([^"']+)\1/);
       if (classMatch) {
         const existingClasses = classMatch[2];
-        // Remove class attribute and add className with cn(...)
         const newAttrs = attrs.replace(classMatch[0], '') + ` className={cn("${existingClasses}", className)}`;
         return `<${tagName}${newAttrs}>`;
       }
 
-      // If no class or className attribute, add className={className}
       return `<${tagName}${attrs} className={className}>`;
     });
 
-    // Replace static inner text with {children} for all first-level elements
+    // Replace inner text with {children}
     selectedText = selectedText.replace(/<(\w+)([^>]*)>([^<]+)<\/\1>/g, (match, tagName, attrs, innerText) => {
-      // If innerText is not empty and does not contain JSX tags, replace with {children}
       if (innerText.trim() && !innerText.includes('<')) {
         return `<${tagName}${attrs}>{children}</${tagName}>`;
       }
@@ -100,7 +119,7 @@ export function activate(context: vscode.ExtensionContext) {
     const componentCode = `import React from 'react';
 import { cn } from '../lib/utils';
 
-const ${fileName} = React.forwardRef(({ className, children, ...props }, ref) => {
+const ${fileName} = React.forwardRef(({ className, children }, ref) => {
   return (
     ${selectedText}
   );
