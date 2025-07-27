@@ -5,7 +5,10 @@
 	"version": "0.0.2",
 	"publisher": "ozgurozbek",
 	"license": "MIT",
-	"repository": "https://github.com/ozgurozbekuk/react-reuse-extension",
+	"repository": {
+  		"type": "git",
+  		"url": "https://github.com/ozgurozbekuk/react-reuse-extension.git"
+	},
 	"engines": {
 		"vscode": "^1.74.0"
 	},
