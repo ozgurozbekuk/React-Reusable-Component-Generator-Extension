@@ -26,11 +26,19 @@ function toPascalCase(input: string): string {
     .replace(/^\w/, c => c.toUpperCase());
 }
 
+function hasSingleRootElement(selection: string): boolean {
+  const trimmed = selection.trim();
+  if (/^<([A-Za-z][^\s/>]*)(?:\s[^>]*)*\/>$/.test(trimmed)) {
+    return true;
+  }
+  return /^<([A-Za-z][^\s/>]*)(?:\s[^>]*)*>([\s\S]*)<\/\1>$/.test(trimmed);
+}
+
 export function activate(context: vscode.ExtensionContext) {
   console.log('Extension "react-component-creator" is now active!');
 
 
-  let disposable = vscode.commands.registerCommand('extension.createComponentFile', async () => {
+  const disposable = vscode.commands.registerCommand('extension.createComponentFile', async () => {
 
     let fileName = await vscode.window.showInputBox({
       prompt: 'Enter component name (e.g. MyButton)',
@@ -75,11 +83,10 @@ export function activate(context: vscode.ExtensionContext) {
       return;
     }
 
-    const rootTagMatches = selectedText.match(/<[^/][^>]*>/g); // sadece açılış tag'lerini bulur
-if (!rootTagMatches || rootTagMatches.length !== 1) {
-  vscode.window.showErrorMessage('Please select only one root element (e.g. <button>...</button>)');
-  return;
-}
+    if (!hasSingleRootElement(selectedText)) {
+      vscode.window.showErrorMessage('Please select only one root element (e.g. <button>...</button>)');
+      return;
+    }
 
 
 
